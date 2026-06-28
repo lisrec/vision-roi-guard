@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -24,8 +26,8 @@ async def async_get_config_entry_diagnostics(
         "state": redact_mapping(
             {
                 "last_result": state.last_result,
-                "last_reason": state.last_reason,
-                "last_error": state.last_error,
+                "last_reason": _redact_diagnostic_text(state.last_reason),
+                "last_error": _redact_diagnostic_text(state.last_error),
                 "backend_name": state.backend_name,
                 "configured_backend_name": backend_name,
                 "camera_available": state.camera_available,
@@ -35,3 +37,19 @@ async def async_get_config_entry_diagnostics(
             }
         ),
     }
+
+
+_TOKEN_OR_LONG_ID = re.compile(r"[A-Za-z0-9_-]{32,}")
+_URL = re.compile(r"https?://[^\s]+")
+_MAX_DIAGNOSTIC_TEXT_LENGTH = 160
+
+
+def _redact_diagnostic_text(value: str | None) -> str | None:
+    """Redact and cap backend-controlled diagnostic text."""
+    if value is None:
+        return None
+    redacted = _URL.sub("[redacted-url]", str(value))
+    redacted = _TOKEN_OR_LONG_ID.sub("[redacted-token]", redacted)
+    if len(redacted) > _MAX_DIAGNOSTIC_TEXT_LENGTH:
+        return f"{redacted[:_MAX_DIAGNOSTIC_TEXT_LENGTH]}…[truncated]"
+    return redacted

@@ -302,7 +302,7 @@ Options flow should hold everything likely to change post-installation.
 
 For v1, use a validated JSON text field or multi-line text field containing:
 ```json
-[[1180,900],[1180,650],[1320,460]]
+[[10,10],[100,10],[100,100],[10,100]]
 ```
 
 Validation rules:

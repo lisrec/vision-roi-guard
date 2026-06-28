@@ -8,8 +8,10 @@ SENSITIVE_KEYS = {
     "roi_points_json",
     "debug_image_path",
     "raw_text",
+    "http_analyzer_url",
+    "metadata",
 }
-SENSITIVE_KEY_FRAGMENTS = ("token", "secret", "password", "api_key", "key")
+SENSITIVE_KEY_FRAGMENTS = ("token", "secret", "password", "api_key", "key", "url")
 
 
 def redact_mapping(data: dict[str, Any]) -> dict[str, Any]:

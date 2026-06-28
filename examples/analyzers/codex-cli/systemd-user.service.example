@@ -1,0 +1,16 @@
+[Unit]
+Description=Vision ROI Guard analyzer bridge
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=VISION_ANALYZER_HOST=127.0.0.1
+Environment=VISION_ANALYZER_PORT=8766
+Environment=VISION_ANALYZER_BEARER_TOKEN=replace-with-local-token
+WorkingDirectory=/path/to/analyzer-bridge
+ExecStart=/usr/bin/python3 /path/to/analyzer-bridge/server.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

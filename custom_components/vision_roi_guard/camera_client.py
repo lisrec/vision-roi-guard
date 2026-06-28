@@ -9,10 +9,13 @@ from homeassistant.core import HomeAssistant
 from .const import STORAGE_DIR, WORK_DIR
 from .exceptions import CameraSnapshotError
 
+SNAPSHOT_MEDIA_ROOT = Path("/media")
+SNAPSHOT_WWW_DIR = "www"
+
 
 async def capture_camera_snapshot(hass: HomeAssistant, camera_entity_id: str) -> Path:
     """Capture a fresh camera snapshot to a temporary file."""
-    work_dir = Path(hass.config.path(STORAGE_DIR, WORK_DIR))
+    work_dir = _snapshot_work_dir(hass)
     await hass.async_add_executor_job(lambda: work_dir.mkdir(parents=True, exist_ok=True))
     snapshot_path = work_dir / f"{secrets.token_hex(8)}.jpg"
 
@@ -30,3 +33,10 @@ async def capture_camera_snapshot(hass: HomeAssistant, camera_entity_id: str) ->
     if not exists:
         raise CameraSnapshotError("camera_snapshot_missing")
     return snapshot_path
+
+
+def _snapshot_work_dir(hass: HomeAssistant) -> Path:
+    """Return a camera.snapshot-writable temporary work directory."""
+    if SNAPSHOT_MEDIA_ROOT.is_dir():
+        return SNAPSHOT_MEDIA_ROOT / STORAGE_DIR / WORK_DIR
+    return Path(hass.config.path(SNAPSHOT_WWW_DIR, STORAGE_DIR, WORK_DIR))

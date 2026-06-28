@@ -16,6 +16,7 @@ from .const import (
     CONF_ACTIVE_STOP_TIME,
     CONF_ANALYSIS_INTERVAL_MIN,
     CONF_ANALYSIS_TIMEOUT_SEC,
+    CONF_ANALYZER_PROFILE,
     CONF_CAMERA_ENTITY_ID,
     CONF_CROP_TO_BOUNDING_BOX,
     CONF_DEBUG_RETENTION_COUNT,
@@ -28,6 +29,7 @@ from .const import (
     DEFAULT_ACTIVE_STOP_TIME,
     DEFAULT_ANALYSIS_INTERVAL_MIN,
     DEFAULT_ANALYSIS_TIMEOUT_SEC,
+    DEFAULT_ANALYZER_PROFILE,
     DEFAULT_CROP_TO_BOUNDING_BOX,
     DEFAULT_DEBUG_RETENTION_COUNT,
     DEFAULT_ENABLED,
@@ -74,6 +76,12 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
     @property
     def state(self) -> GuardState:
         return self._state
+
+    def update_backend(self, backend: VisionBackend) -> None:
+        """Update the analysis backend without recreating HA entities."""
+        self._backend = backend
+        self._state.backend_name = backend.backend_name
+        self.async_set_updated_data(self._state)
 
     def update_options(self, options: dict[str, Any]) -> None:
         """Update runtime options without recreating the coordinator."""
@@ -141,7 +149,24 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
 
             result = await self._backend.analyze(
                 str(processed_path),
-                {CONF_PROMPT_TEMPLATE: self._options.get(CONF_PROMPT_TEMPLATE)},
+                {
+                    CONF_PROMPT_TEMPLATE: self._options.get(CONF_PROMPT_TEMPLATE),
+                    CONF_ANALYZER_PROFILE: self._options.get(
+                        CONF_ANALYZER_PROFILE, DEFAULT_ANALYZER_PROFILE
+                    ),
+                    "camera_entity_id": self._data[CONF_CAMERA_ENTITY_ID],
+                    "roi_mode": (
+                        "cropped"
+                        if self._options.get(
+                            CONF_CROP_TO_BOUNDING_BOX, DEFAULT_CROP_TO_BOUNDING_BOX
+                        )
+                        else "masked"
+                    ),
+                    "image_format": processed.image_format.lower(),
+                    "original_size": processed.original_size,
+                    "output_size": processed.output_size,
+                    "roi_point_count": processed.point_count,
+                },
                 timeout_sec,
             )
             await self._apply_result(result, analyzed_at, processed.point_count)

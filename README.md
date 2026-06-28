@@ -10,7 +10,7 @@ The repository contains a functional custom integration with:
 
 - UI config flow and options flow
 - local ROI JSON parsing, polygon validation, masking, and crop generation via Pillow
-- pluggable backends with `mock` and `codex_cli`
+- pluggable backends with `mock`, provider-neutral `http`, and `codex_cli`
 - coordinator-driven state model and HA entities
 - services for `run_analysis` and `clear_state`
 - redacted diagnostics
@@ -25,7 +25,7 @@ The repository contains a functional custom integration with:
 5. Open the integration options and paste ROI points JSON such as:
 
 ```json
-[[1180,900],[1180,650],[1320,460],[1600,700]]
+[[10,10],[100,10],[100,100],[10,100]]
 ```
 
 Only `safe` is treated as safe-to-start. `blocked`, `uncertain`, and `error` all fail closed.
@@ -48,6 +48,12 @@ Debug images are opt-in and retained locally under Home Assistant storage with p
 
 Deterministic backend for CI, tests, and local dry runs.
 
+### `http`
+
+Provider-neutral HTTP Analyzer backend. The integration sends the processed ROI image to a configured `http://` or `https://` analyzer URL and accepts the normalized `safe` / `blocked` / `uncertain` / `error` response. The analyzer can run beside Home Assistant, in another Docker container, on the host, on a LAN GPU server, or remotely. Use HTTPS for non-local analyzers and avoid sending private camera/entity metadata to untrusted endpoints.
+
+Reference analyzers live under `examples/analyzers/` and can wrap Codex CLI, Ollama, OpenAI, or any other AI runtime as long as they expose the documented HTTP contract.
+
 ### `codex_cli`
 
 Runs the local `codex` executable without shell interpolation and expects strict JSON:
@@ -65,7 +71,7 @@ The current implementation assumes a `codex exec -i <image> ...` command shape. 
 ## Known limitations
 
 - ROI points are configured as JSON text; there is no graphical polygon editor yet.
-- `codex_cli` depends on a locally installed and authenticated `codex` executable in the Home Assistant process `PATH`.
+- `codex_cli` depends on a locally installed and authenticated `codex` executable in the Home Assistant process `PATH`; for Home Assistant containers, prefer the `http` backend with a host-side Codex bridge instead.
 - The integration makes a point-in-time decision from a single camera snapshot. Use Home Assistant automations for retries, mower commands, and multi-sensor policy.
 - Debug images may contain private camera content inside the ROI. Keep debug persistence disabled unless actively troubleshooting.
 
@@ -84,6 +90,7 @@ PYTHONPATH=. ./.venv/bin/pytest
 
 - [Implementation Plan](docs/IMPLEMENTATION_PLAN.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [HTTP Analyzer Backend](docs/HTTP_ANALYZER_BACKEND.md)
 - [Security and Privacy](docs/SECURITY_AND_PRIVACY.md)
 - [Example automation](docs/examples/automation_mower_gate.yaml)
 

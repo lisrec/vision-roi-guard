@@ -75,7 +75,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: VisionRoiGuardConfigEntry) -> bool:
     """Set up a config entry."""
     merged_options = {**entry.data, **entry.options}
-    backend = create_backend(entry.data["backend_type"], merged_options)
+    backend = create_backend(entry.data["backend_type"], merged_options, hass)
     await backend.validate()
 
     coordinator = VisionRoiGuardCoordinator(
@@ -87,7 +87,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: VisionRoiGuardConfigEntr
         backend=backend,
     )
     entry.runtime_data = RuntimeData(coordinator=coordinator, backend=backend)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    entry.async_on_unload(entry.add_update_listener(async_options_updated))
     hass.data[DOMAIN][entry.entry_id] = entry.runtime_data
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -100,6 +100,19 @@ async def async_unload_entry(hass: HomeAssistant, entry: VisionRoiGuardConfigEnt
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id, None)
     return unload_ok
+
+
+async def async_options_updated(hass: HomeAssistant, entry: VisionRoiGuardConfigEntry) -> None:
+    """Apply option changes without unloading/recreating all entities."""
+    runtime_data = hass.data[DOMAIN].get(entry.entry_id)
+    if runtime_data is None:
+        return
+    merged_options = {**entry.data, **entry.options}
+    backend = create_backend(entry.data["backend_type"], merged_options, hass)
+    await backend.validate()
+    runtime_data.backend = backend
+    runtime_data.coordinator.update_backend(backend)
+    runtime_data.coordinator.update_options(merged_options)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: VisionRoiGuardConfigEntry) -> None:

@@ -7,7 +7,12 @@
         "data": {
           "name": "Name",
           "camera_entity_id": "Camera entity ID",
-          "backend_type": "Backend"
+          "backend_type": "Backend",
+          "http_analyzer_url": "Analyzer URL",
+          "http_auth_type": "HTTP auth type",
+          "http_bearer_token": "Bearer token",
+          "analysis_timeout_sec": "Timeout",
+          "analyzer_profile": "Analyzer profile"
         }
       }
     },
@@ -15,7 +20,11 @@
       "camera_not_found": "Camera entity was not found.",
       "camera_invalid_domain": "Entity must belong to the camera domain.",
       "codex_cli_missing": "Codex CLI is not available in PATH.",
-      "unsupported_backend": "Selected backend is not supported."
+      "unsupported_backend": "Selected backend is not supported.",
+      "missing_http_analyzer_url": "Analyzer URL is required for the HTTP analyzer.",
+      "invalid_http_analyzer_url": "Analyzer URL must be an absolute http:// or https:// URL.",
+      "invalid_http_auth_type": "HTTP auth type is not supported.",
+      "missing_http_bearer_token": "Bearer token is required when bearer auth is selected."
     }
   },
   "options": {
@@ -30,7 +39,11 @@
       "roi_too_few_points": "At least 3 ROI points are required.",
       "roi_self_intersection": "ROI polygon cannot self-intersect.",
       "invalid_verdict": "Mock verdict must be safe, blocked, or uncertain.",
-      "invalid_mock_mode": "Mock mode is not supported."
+      "invalid_mock_mode": "Mock mode is not supported.",
+      "missing_http_analyzer_url": "Analyzer URL is required for the HTTP analyzer.",
+      "invalid_http_analyzer_url": "Analyzer URL must be an absolute http:// or https:// URL.",
+      "invalid_http_auth_type": "HTTP auth type is not supported.",
+      "missing_http_bearer_token": "Bearer token is required when bearer auth is selected."
     }
   },
   "entity": {

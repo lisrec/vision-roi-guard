@@ -6,6 +6,7 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import (
+    BACKEND_HTTP_ANALYZER,
     BACKEND_MOCK,
     CONF_BACKEND_TYPE,
     CONF_CAMERA_ENTITY_ID,
@@ -17,6 +18,7 @@ from .helpers.validation import (
     ensure_backend_available,
     sanitize_option_payload,
     validate_camera_entity_id,
+    validate_http_backend_config,
 )
 
 
@@ -31,6 +33,9 @@ class VisionRoiGuardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 validate_camera_entity_id(self.hass, user_input[CONF_CAMERA_ENTITY_ID])
                 ensure_backend_available(user_input[CONF_BACKEND_TYPE])
+                sanitized_options = sanitize_option_payload(user_input)
+                if user_input[CONF_BACKEND_TYPE] == BACKEND_HTTP_ANALYZER:
+                    validate_http_backend_config(sanitized_options)
             except ValidationError as err:
                 errors["base"] = str(err)
             else:
@@ -45,7 +50,16 @@ class VisionRoiGuardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_CAMERA_ENTITY_ID: user_input[CONF_CAMERA_ENTITY_ID],
                         CONF_BACKEND_TYPE: user_input[CONF_BACKEND_TYPE],
                     },
-                    options={},
+                    options={
+                        key: value
+                        for key, value in sanitized_options.items()
+                        if key
+                        not in (
+                            "name",
+                            CONF_CAMERA_ENTITY_ID,
+                            CONF_BACKEND_TYPE,
+                        )
+                    },
                 )
 
         return self.async_show_form(step_id="user", data_schema=build_user_schema(), errors=errors)
@@ -67,8 +81,11 @@ class VisionRoiGuardOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             try:
                 sanitized = sanitize_option_payload(user_input)
-                if self._config_entry.data.get(CONF_BACKEND_TYPE, BACKEND_MOCK) != BACKEND_MOCK:
-                    ensure_backend_available(self._config_entry.data[CONF_BACKEND_TYPE])
+                backend_type = self._config_entry.data.get(CONF_BACKEND_TYPE, BACKEND_MOCK)
+                if backend_type != BACKEND_MOCK:
+                    ensure_backend_available(backend_type)
+                if backend_type == BACKEND_HTTP_ANALYZER:
+                    validate_http_backend_config({**current, **sanitized})
             except ValidationError as err:
                 errors["base"] = str(err)
             else:

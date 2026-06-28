@@ -18,12 +18,16 @@ from ..const import (
     CONF_ACTIVE_STOP_TIME,
     CONF_ANALYSIS_INTERVAL_MIN,
     CONF_ANALYSIS_TIMEOUT_SEC,
+    CONF_ANALYZER_PROFILE,
     CONF_BACKEND_TYPE,
     CONF_CAMERA_ENTITY_ID,
     CONF_CLI_TIMEOUT_SEC,
     CONF_CROP_TO_BOUNDING_BOX,
     CONF_DEBUG_RETENTION_COUNT,
     CONF_ENABLED,
+    CONF_HTTP_ANALYZER_URL,
+    CONF_HTTP_AUTH_TYPE,
+    CONF_HTTP_BEARER_TOKEN,
     CONF_MASK_OUTSIDE_ROI_MODE,
     CONF_MAX_OUTPUT_TOKENS,
     CONF_MOCK_MODE,
@@ -39,10 +43,12 @@ from ..const import (
     DEFAULT_ACTIVE_STOP_TIME,
     DEFAULT_ANALYSIS_INTERVAL_MIN,
     DEFAULT_ANALYSIS_TIMEOUT_SEC,
+    DEFAULT_ANALYZER_PROFILE,
     DEFAULT_CLI_TIMEOUT_SEC,
     DEFAULT_CROP_TO_BOUNDING_BOX,
     DEFAULT_DEBUG_RETENTION_COUNT,
     DEFAULT_ENABLED,
+    DEFAULT_HTTP_AUTH_TYPE,
     DEFAULT_MASK_OUTSIDE_ROI_MODE,
     DEFAULT_MAX_OUTPUT_TOKENS,
     DEFAULT_MOCK_MODE,
@@ -52,6 +58,7 @@ from ..const import (
     DEFAULT_PROMPT_TEMPLATE,
     DEFAULT_SAVE_DEBUG_IMAGES,
     DEFAULT_UNCERTAIN_ON_UNKNOWN_OBJECTS,
+    HTTP_AUTH_TYPES,
 )
 
 MASK_MODE_OPTIONS = ("black", "dim")
@@ -71,6 +78,24 @@ def build_user_schema(defaults: dict[str, object] | None = None) -> vol.Schema:
                 CONF_BACKEND_TYPE,
                 default=defaults.get(CONF_BACKEND_TYPE, BACKEND_TYPES[0]),
             ): SelectSelector(SelectSelectorConfig(options=list(BACKEND_TYPES))),
+            vol.Optional(
+                CONF_HTTP_ANALYZER_URL, default=defaults.get(CONF_HTTP_ANALYZER_URL, "")
+            ): TextSelector(),
+            vol.Optional(
+                CONF_HTTP_AUTH_TYPE,
+                default=defaults.get(CONF_HTTP_AUTH_TYPE, DEFAULT_HTTP_AUTH_TYPE),
+            ): SelectSelector(SelectSelectorConfig(options=list(HTTP_AUTH_TYPES))),
+            vol.Optional(
+                CONF_HTTP_BEARER_TOKEN, default=defaults.get(CONF_HTTP_BEARER_TOKEN, "")
+            ): TextSelector(TextSelectorConfig(type="password")),
+            vol.Optional(
+                CONF_ANALYSIS_TIMEOUT_SEC,
+                default=defaults.get(CONF_ANALYSIS_TIMEOUT_SEC, DEFAULT_ANALYSIS_TIMEOUT_SEC),
+            ): NumberSelector(NumberSelectorConfig(min=5, max=600, mode="box")),
+            vol.Optional(
+                CONF_ANALYZER_PROFILE,
+                default=defaults.get(CONF_ANALYZER_PROFILE, DEFAULT_ANALYZER_PROFILE),
+            ): TextSelector(),
         }
     )
 
@@ -117,6 +142,20 @@ def build_options_schema(current: dict[str, object]) -> vol.Schema:
             vol.Optional(
                 CONF_ROI_POINTS_JSON, default=current.get(CONF_ROI_POINTS_JSON, "")
             ): TextSelector(TextSelectorConfig(multiline=True)),
+            vol.Optional(
+                CONF_HTTP_ANALYZER_URL, default=current.get(CONF_HTTP_ANALYZER_URL, "")
+            ): TextSelector(),
+            vol.Optional(
+                CONF_HTTP_AUTH_TYPE,
+                default=current.get(CONF_HTTP_AUTH_TYPE, DEFAULT_HTTP_AUTH_TYPE),
+            ): SelectSelector(SelectSelectorConfig(options=list(HTTP_AUTH_TYPES))),
+            vol.Optional(
+                CONF_HTTP_BEARER_TOKEN, default=current.get(CONF_HTTP_BEARER_TOKEN, "")
+            ): TextSelector(TextSelectorConfig(type="password")),
+            vol.Optional(
+                CONF_ANALYZER_PROFILE,
+                default=current.get(CONF_ANALYZER_PROFILE, DEFAULT_ANALYZER_PROFILE),
+            ): TextSelector(),
             vol.Optional(CONF_MODEL, default=current.get(CONF_MODEL, "")): TextSelector(),
             vol.Optional(
                 CONF_PROMPT_TEMPLATE,

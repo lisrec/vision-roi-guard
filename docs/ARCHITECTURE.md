@@ -11,7 +11,8 @@
    - `roi.py` validates polygon JSON and generates a masked/cropped image
 4. Backend adapters
    - `mock` for deterministic local behavior
-   - `codex_cli` for real CLI-based image analysis
+   - `http` for generic analyzer endpoints
+   - `codex_cli` for legacy/local CLI-based image analysis
 
 ## Processing path
 
@@ -35,12 +36,12 @@
 
 - Camera acquisition uses the Home Assistant `camera.snapshot` service instead of storing long-lived proxy URLs.
 - ROI processing uses Pillow instead of OpenCV to keep the dependency footprint small.
-- The backend interface is intentionally narrow so additional adapters can be added without touching HA entities.
+- The backend interface is intentionally narrow so analyzer runtimes stay outside the Home Assistant integration.
 - Options changes reload the config entry so runtime behavior stays aligned with UI configuration.
 
 ## Current limitations
 
 - ROI entry is JSON-based and intentionally minimal.
 - There is no image entity for serving retained debug images; debug paths are local troubleshooting aids.
-- The `codex_cli` adapter is coupled to the current `codex exec -i <image>` command shape.
+- The `codex_cli` adapter is retained for compatibility, but the preferred production boundary is the generic HTTP analyzer.
 - The integration does not command mowers or other actuators directly.

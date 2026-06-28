@@ -38,10 +38,19 @@ CONF_MOCK_MODE: Final = "mock_mode"
 CONF_MOCK_VERDICT: Final = "mock_verdict"
 CONF_MOCK_REASON: Final = "mock_reason"
 CONF_MOCK_SEEN_OBJECTS: Final = "mock_seen_objects"
+CONF_HTTP_ANALYZER_URL: Final = "http_analyzer_url"
+CONF_HTTP_AUTH_TYPE: Final = "http_auth_type"
+CONF_HTTP_BEARER_TOKEN: Final = "http_bearer_token"
+CONF_ANALYZER_PROFILE: Final = "analyzer_profile"
 
 BACKEND_CODEX_CLI: Final = "codex_cli"
 BACKEND_MOCK: Final = "mock"
-BACKEND_TYPES: Final = (BACKEND_CODEX_CLI, BACKEND_MOCK)
+BACKEND_HTTP_ANALYZER: Final = "http"
+BACKEND_TYPES: Final = (BACKEND_MOCK, BACKEND_HTTP_ANALYZER, BACKEND_CODEX_CLI)
+
+HTTP_AUTH_NONE: Final = "none"
+HTTP_AUTH_BEARER: Final = "bearer"
+HTTP_AUTH_TYPES: Final = (HTTP_AUTH_NONE, HTTP_AUTH_BEARER)
 
 VERDICT_SAFE: Final = "safe"
 VERDICT_BLOCKED: Final = "blocked"
@@ -79,6 +88,8 @@ DEFAULT_MOCK_MODE: Final = "fixed"
 DEFAULT_MOCK_VERDICT: Final = VERDICT_SAFE
 DEFAULT_MOCK_REASON: Final = "mock_safe"
 DEFAULT_MOCK_SEEN_OBJECTS: Final = ""
+DEFAULT_HTTP_AUTH_TYPE: Final = HTTP_AUTH_NONE
+DEFAULT_ANALYZER_PROFILE: Final = "mower_safety"
 
 SERVICE_RUN_ANALYSIS: Final = "run_analysis"
 SERVICE_CLEAR_STATE: Final = "clear_state"
