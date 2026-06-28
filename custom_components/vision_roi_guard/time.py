@@ -15,6 +15,7 @@ from .const import (
     DOMAIN,
 )
 from .entity import VisionRoiGuardEntity
+from .helpers.validation import parse_time
 
 
 async def async_setup_entry(
@@ -42,7 +43,7 @@ class BaseOptionTimeEntity(VisionRoiGuardEntity, TimeEntity):
 
     @property
     def native_value(self) -> time:
-        return self._entry.options.get(self.option_key, self.default_value)
+        return parse_time(self._entry.options.get(self.option_key, self.default_value))
 
     async def async_set_value(self, value: time) -> None:
         new_options = dict(self._entry.options)

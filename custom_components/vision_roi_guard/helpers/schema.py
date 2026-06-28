@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import voluptuous as vol
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.selector import (
     BooleanSelector,
     NumberSelector,
@@ -10,6 +9,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     TextSelector,
     TextSelectorConfig,
+    TimeSelector,
 )
 
 from ..const import (
@@ -85,11 +85,11 @@ def build_options_schema(current: dict[str, object]) -> vol.Schema:
             vol.Optional(
                 CONF_ACTIVE_START_TIME,
                 default=current.get(CONF_ACTIVE_START_TIME, DEFAULT_ACTIVE_START_TIME),
-            ): cv.time,
+            ): TimeSelector(),
             vol.Optional(
                 CONF_ACTIVE_STOP_TIME,
                 default=current.get(CONF_ACTIVE_STOP_TIME, DEFAULT_ACTIVE_STOP_TIME),
-            ): cv.time,
+            ): TimeSelector(),
             vol.Optional(
                 CONF_ANALYSIS_INTERVAL_MIN,
                 default=current.get(CONF_ANALYSIS_INTERVAL_MIN, DEFAULT_ANALYSIS_INTERVAL_MIN),

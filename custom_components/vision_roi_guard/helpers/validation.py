@@ -11,6 +11,8 @@ from ..const import (
     BACKEND_CODEX_CLI,
     BACKEND_MOCK,
     BACKEND_TYPES,
+    CONF_ACTIVE_START_TIME,
+    CONF_ACTIVE_STOP_TIME,
     CONF_ANALYSIS_INTERVAL_MIN,
     CONF_ANALYSIS_TIMEOUT_SEC,
     CONF_CLI_TIMEOUT_SEC,
@@ -97,6 +99,9 @@ def sanitize_option_payload(payload: dict[str, Any]) -> dict[str, Any]:
     ):
         if key in options:
             options[key] = int(options[key])
+    for key in (CONF_ACTIVE_START_TIME, CONF_ACTIVE_STOP_TIME):
+        if key in options:
+            options[key] = parse_time(options[key])
     if CONF_MODEL in options:
         options[CONF_MODEL] = str(options[CONF_MODEL]).strip()
     if CONF_PROMPT_TEMPLATE in options:
