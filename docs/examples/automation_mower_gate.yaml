@@ -1,0 +1,23 @@
+alias: Mower gate using Vision ROI Guard
+mode: single
+triggers:
+  - trigger: time
+    at: "08:59:00"
+actions:
+  - action: vision_roi_guard.run_analysis
+    target:
+      entity_id: binary_sensor.garden_guard_safe_to_start
+    data:
+      force: true
+  - if:
+      - condition: state
+        entity_id: binary_sensor.garden_guard_safe_to_start
+        state: "on"
+    then:
+      - action: lawn_mower.start_mowing
+        target:
+          entity_id: lawn_mower.example
+    else:
+      - action: notify.mobile_app_example
+        data:
+          message: "Mower start blocked by Vision ROI Guard."

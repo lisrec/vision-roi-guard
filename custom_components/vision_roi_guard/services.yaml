@@ -1,0 +1,37 @@
+run_analysis:
+  name: Run analysis
+  description: Run a camera ROI analysis for one or more Vision ROI Guard entries.
+  fields:
+    entity_id:
+      required: false
+      selector:
+        entity:
+          integration: vision_roi_guard
+    config_entry_id:
+      required: false
+      selector:
+        text:
+    force:
+      required: false
+      default: false
+      selector:
+        boolean:
+    save_debug:
+      required: false
+      default: false
+      selector:
+        boolean:
+
+clear_state:
+  name: Clear state
+  description: Clear transient result and error state for one or more Vision ROI Guard entries.
+  fields:
+    entity_id:
+      required: false
+      selector:
+        entity:
+          integration: vision_roi_guard
+    config_entry_id:
+      required: false
+      selector:
+        text:

@@ -1,6 +1,6 @@
 # vision-roi-guard — Full Implementation Plan
 
-> Status: design phase
+> Status: v0.1 integration implemented; this document is retained as design context.
 > 
 > Goal: build a production-grade, HACS-installable Home Assistant custom integration that evaluates a camera snapshot only within a configured polygon ROI and exposes the result as Home Assistant entities/services for downstream automations.
 
@@ -102,7 +102,7 @@ Custom integration installed through HACS:
 
 ## 5. Repository structure
 
-Target repository layout:
+Current repository layout:
 
 ```text
 vision-roi-guard/
@@ -134,7 +134,6 @@ vision-roi-guard/
 │       ├── switch.py
 │       ├── number.py
 │       ├── time.py
-│       ├── image.py                  # optional in v1, preferred if feasible
 │       ├── models.py
 │       ├── exceptions.py
 │       ├── camera_client.py
@@ -145,7 +144,6 @@ vision-roi-guard/
 │       │   ├── base.py
 │       │   ├── codex_cli.py
 │       │   ├── mock.py
-│       │   └── webhook.py           # optional stub for future
 │       └── helpers/
 │           ├── redact.py
 │           ├── schema.py
@@ -164,15 +162,12 @@ vision-roi-guard/
 └── docs/
     ├── IMPLEMENTATION_PLAN.md
     ├── ARCHITECTURE.md
-    ├── ENTITY_MODEL.md
     ├── SECURITY_AND_PRIVACY.md
-    ├── HACS_RELEASES.md
     └── examples/
-        ├── automation_mower_gate.yaml
-        └── options_example.json
+        └── automation_mower_gate.yaml
 ```
 
-Note: only `IMPLEMENTATION_PLAN.md` is required now; the others are recommended follow-up docs once code starts.
+Follow-up documentation can add an entity reference and release guide when the integration grows.
 
 ---
 
@@ -282,7 +277,7 @@ On submit, integration must:
 #### `codex_cli`
 Validation should check:
 - `codex` binary exists in PATH
-- a lightweight auth/health probe succeeds
+- a lightweight health probe succeeds when practical
 
 Important: do **not** store Codex auth secrets in the integration. The integration should rely on existing Codex local auth state.
 
@@ -531,6 +526,10 @@ Use subprocess invocation of:
 - with `-i <image>`
 - with deterministic prompt
 - preferably with structured output constraints
+
+Implementation note:
+- the current codebase assumes a `codex exec -i <image> [--model ...] [--max-output-tokens ...] <prompt>` CLI shape
+- if the CLI surface changes, adapt only the backend module and keep the normalized JSON contract unchanged
 
 ### Output strategy
 Strong recommendation:

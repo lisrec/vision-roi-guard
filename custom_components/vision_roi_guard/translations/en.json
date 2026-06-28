@@ -1,0 +1,65 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Vision ROI Guard",
+        "description": "Create a new ROI-based vision guard.",
+        "data": {
+          "name": "Name",
+          "camera_entity_id": "Camera entity ID",
+          "backend_type": "Backend"
+        }
+      }
+    },
+    "error": {
+      "camera_not_found": "Camera entity was not found.",
+      "camera_invalid_domain": "Entity must belong to the camera domain.",
+      "codex_cli_missing": "Codex CLI is not available in PATH.",
+      "unsupported_backend": "Selected backend is not supported."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vision ROI Guard options"
+      }
+    },
+    "error": {
+      "roi_json_invalid": "ROI JSON is invalid.",
+      "roi_points_invalid": "ROI points must be integer pairs.",
+      "roi_too_few_points": "At least 3 ROI points are required.",
+      "roi_self_intersection": "ROI polygon cannot self-intersect.",
+      "invalid_verdict": "Mock verdict must be safe, blocked, or uncertain.",
+      "invalid_mock_mode": "Mock mode is not supported."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "safe_to_start": { "name": "Safe to start" },
+      "analysis_ok": { "name": "Analysis OK" },
+      "camera_available": { "name": "Camera available" }
+    },
+    "sensor": {
+      "last_result": { "name": "Last result" },
+      "last_reason": { "name": "Last reason" },
+      "last_seen_objects": { "name": "Last seen objects" },
+      "last_time_analyzed": { "name": "Last time analyzed" },
+      "last_duration_sec": { "name": "Last duration" },
+      "last_error": { "name": "Last error" }
+    },
+    "button": {
+      "run_analyze_now": { "name": "Run analyze now" },
+      "save_debug_snapshot": { "name": "Save debug snapshot" }
+    },
+    "switch": {
+      "enabled": { "name": "Enabled" }
+    },
+    "number": {
+      "analysis_interval_min": { "name": "Analysis interval" }
+    },
+    "time": {
+      "analysis_start_time": { "name": "Analysis start time" },
+      "analysis_stop_time": { "name": "Analysis stop time" }
+    }
+  }
+}

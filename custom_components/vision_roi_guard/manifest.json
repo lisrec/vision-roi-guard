@@ -1,0 +1,12 @@
+{
+  "domain": "vision_roi_guard",
+  "name": "Vision ROI Guard",
+  "version": "0.1.0",
+  "documentation": "https://github.com/lisrec/vision-roi-guard",
+  "issue_tracker": "https://github.com/lisrec/vision-roi-guard/issues",
+  "codeowners": ["@lisrec"],
+  "config_flow": true,
+  "integration_type": "service",
+  "iot_class": "local_polling",
+  "requirements": ["Pillow>=10.0.0"]
+}

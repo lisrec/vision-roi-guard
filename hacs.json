@@ -1,0 +1,7 @@
+{
+  "name": "Vision ROI Guard",
+  "content_in_root": false,
+  "domains": ["vision_roi_guard"],
+  "homeassistant": "2024.12.0",
+  "render_readme": true
+}
