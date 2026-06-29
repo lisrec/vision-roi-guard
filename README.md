@@ -12,8 +12,8 @@ The repository contains a functional custom integration with:
 - local ROI JSON parsing, polygon validation, masking, and crop generation via Pillow
 - pluggable backends with `mock`, provider-neutral `http`, and `codex_cli`
 - coordinator-driven state model and HA entities
-- services for `run_analysis`, `update_roi`, and `clear_state`
-- a Lovelace custom card for drawing and saving ROI polygons
+- services for `run_analysis`, `update_roi`, `refresh_roi_editor_image`, and `clear_state`
+- an integration-owned ROI editor panel for drawing and saving ROI polygons
 - redacted diagnostics
 - pytest coverage for core logic and HA integration setup paths
 
@@ -23,7 +23,7 @@ The repository contains a functional custom integration with:
 2. Restart Home Assistant.
 3. Add `Vision ROI Guard` from Settings -> Devices & Services -> Add Integration.
 4. Choose a Home Assistant `camera.*` entity and a backend.
-5. Create an initial ROI in the graphical editor, or open the integration options and paste ROI points JSON as a fallback:
+5. Open the Vision ROI Guard panel from the Home Assistant sidebar and draw the ROI. The options-flow JSON field remains available as an advanced fallback:
 
 ```json
 [[10,10],[100,10],[100,100],[10,100]]
@@ -41,51 +41,42 @@ The integration exposes:
 - `image.roi_editor_image` for a full-frame camera snapshot with the current ROI overlay
 - buttons for immediate analysis and saving a debug snapshot
 - switch/time/number entities for enabled state, active window, and interval
-- services `vision_roi_guard.run_analysis`, `vision_roi_guard.update_roi`, and `vision_roi_guard.clear_state`
+- services `vision_roi_guard.run_analysis`, `vision_roi_guard.update_roi`, `vision_roi_guard.refresh_roi_editor_image`, and `vision_roi_guard.clear_state`
 
 The last analyzed image is overwritten on each analysis and can be used directly in
 Home Assistant image cards. Debug snapshot files remain opt-in and are retained locally
 under Home Assistant storage with pruning.
 
 The safe-to-start binary sensor exposes `roi_points`, `roi_points_json`,
-`source_width`, and `source_height` attributes for the editor card.
+`source_width`, and `source_height` attributes for diagnostics and advanced UI use.
 
 ## Graphical ROI editor
 
-The integration serves a no-build Lovelace custom card from:
+The primary editor is a Home Assistant panel registered automatically by the
+integration at `/vision-roi-guard` and shown as `Vision ROI Guard` in the sidebar.
+There is no dashboard resource setup, no manual Lovelace card YAML, and no
+entity ID wiring.
 
-```text
-/vision_roi_guard_static/roi-editor-card.js
-```
+The panel lists configured Vision ROI Guard entries by integration title. Select
+an entry, press `Refresh frame` to capture the editor image, then draw or adjust
+the polygon. Drag vertices to move them, click the image to add a vertex, select
+a vertex and press `Delete vertex` to remove it, then press `Save ROI`.
 
-Add that URL as a JavaScript module resource in Home Assistant:
-
-1. Settings -> Dashboards -> Resources.
-2. Add resource.
-3. URL: `/vision_roi_guard_static/roi-editor-card.js`
-4. Resource type: `JavaScript Module`.
-
-Then add a manual Lovelace card with your integration entity IDs:
-
-```yaml
-type: custom:vision-roi-editor-card
-guard_entity: binary_sensor.garden_guard_safe_to_start
-image_entity: image.garden_guard_roi_editor_image
-```
-
-Use generic entity IDs for documentation and examples only. Do not publish real
-camera entity IDs or private ROI coordinates.
-
-Run `vision_roi_guard.run_analysis` once, or press the integration's analyze
-button, to create the first full-frame editor image. The card draws the current
-polygon over `image.*_roi_editor_image`; drag vertices to move them, click the
-image to add a vertex, select a vertex and press Delete to remove it, then press
-Save. Save calls `vision_roi_guard.update_roi` and stores the polygon in the
-config entry options as `roi_points_json`.
+Save calls `vision_roi_guard.update_roi` with the selected `config_entry_id` and
+stores the polygon in the config entry options as `roi_points_json`. `Run test
+analysis` calls `vision_roi_guard.run_analysis` for the selected entry, and
+`Reload saved ROI` discards unsaved panel edits.
 
 The original options-flow JSON field remains available as a fallback and for
 advanced edits. `image.*_last_analyzed_image` is unchanged and continues to show
 the ROI-processed analyzer input.
+
+### Advanced Lovelace fallback
+
+The integration still serves the previous no-build Lovelace custom card from
+`/vision_roi_guard_static/roi-editor-card.js` for power users who want to embed
+the editor in a dashboard. This is not the primary setup path; it requires
+manually adding the dashboard resource and manually providing entity IDs.
 
 ## Backends
 
@@ -115,8 +106,6 @@ The current implementation assumes a `codex exec -i <image> ...` command shape. 
 
 ## Known limitations
 
-- The graphical editor is intentionally minimal and uses a Lovelace custom card,
-  not a full Home Assistant panel.
 - `codex_cli` depends on a locally installed and authenticated `codex` executable in the Home Assistant process `PATH`; for Home Assistant containers, prefer the `http` backend with a host-side Codex bridge instead.
 - The integration makes a point-in-time decision from a single camera snapshot. Use Home Assistant automations for retries, mower commands, and multi-sensor policy.
 - Debug images may contain private camera content inside the ROI. Keep debug persistence disabled unless actively troubleshooting.

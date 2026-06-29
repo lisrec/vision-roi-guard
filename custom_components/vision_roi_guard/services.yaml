@@ -58,3 +58,17 @@ update_roi:
       required: false
       selector:
         object:
+
+refresh_roi_editor_image:
+  name: Refresh ROI editor image
+  description: Capture a fresh full-frame image for the Vision ROI Guard ROI editor.
+  fields:
+    entity_id:
+      required: false
+      selector:
+        entity:
+          integration: vision_roi_guard
+    config_entry_id:
+      required: false
+      selector:
+        text:

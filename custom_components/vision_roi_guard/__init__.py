@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import Any
 
 import voluptuous as vol
+from homeassistant.components import panel_custom, websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
@@ -21,8 +22,10 @@ from .const import (
     ATTR_SAVE_DEBUG,
     CONF_ROI_POINTS_JSON,
     DOMAIN,
+    NAME,
     PLATFORMS,
     SERVICE_CLEAR_STATE,
+    SERVICE_REFRESH_ROI_EDITOR_IMAGE,
     SERVICE_RUN_ANALYSIS,
     SERVICE_UPDATE_ROI,
 )
@@ -41,16 +44,32 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the integration domain."""
     hass.data.setdefault(DOMAIN, {})
     if hass.http is not None:
-        static_path = Path(__file__).parent / "www" / "roi-editor-card.js"
+        static_dir = Path(__file__).parent / "www"
         await hass.http.async_register_static_paths(
             [
                 StaticPathConfig(
                     "/vision_roi_guard_static/roi-editor-card.js",
-                    str(static_path),
+                    str(static_dir / "roi-editor-card.js"),
                     cache_headers=False,
-                )
+                ),
+                StaticPathConfig(
+                    "/vision_roi_guard_static/roi-editor-panel.js",
+                    str(static_dir / "roi-editor-panel.js"),
+                    cache_headers=False,
+                ),
             ]
         )
+    await panel_custom.async_register_panel(
+        hass,
+        frontend_url_path="vision-roi-guard",
+        webcomponent_name="vision-roi-guard-panel",
+        sidebar_title=NAME,
+        sidebar_icon="mdi:vector-polygon",
+        module_url="/vision_roi_guard_static/roi-editor-panel.js",
+        config={"domain": DOMAIN},
+        config_panel_domain=DOMAIN,
+    )
+    websocket_api.async_register_command(hass, websocket_list_entries)
 
     async def async_run_analysis(call: ServiceCall) -> None:
         coordinators = await _resolve_target_coordinators(hass, call)
@@ -92,6 +111,16 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             except (CameraSnapshotError, ValidationError) as err:
                 LOGGER.debug("Could not refresh ROI editor image after save: %s", err)
 
+    async def async_refresh_roi_editor_image(call: ServiceCall) -> None:
+        coordinators = await _resolve_target_coordinators(hass, call)
+        for coordinator in coordinators:
+            try:
+                await coordinator.async_refresh_roi_editor_image()
+            except (CameraSnapshotError, ValidationError) as err:
+                raise ServiceValidationError(
+                    f"Could not refresh ROI editor image: {err}"
+                ) from err
+
     if not hass.services.has_service(DOMAIN, SERVICE_RUN_ANALYSIS):
         hass.services.async_register(
             DOMAIN,
@@ -132,7 +161,76 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                 }
             ),
         )
+    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_ROI_EDITOR_IMAGE):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_REFRESH_ROI_EDITOR_IMAGE,
+            async_refresh_roi_editor_image,
+            schema=vol.Schema(
+                {
+                    vol.Optional("entity_id"): vol.Any(str, [str]),
+                    vol.Optional(ATTR_CONFIG_ENTRY_ID): str,
+                }
+            ),
+        )
     return True
+
+
+@callback
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/list_entries"})
+def websocket_list_entries(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """List Vision ROI Guard entries for the integration panel."""
+    entity_registry = er.async_get(hass)
+    entries: list[dict[str, Any]] = []
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        runtime_data = hass.data[DOMAIN].get(entry.entry_id)
+        coordinator = runtime_data.coordinator if runtime_data is not None else None
+        entities = _entity_ids_for_entry(entity_registry, entry.entry_id)
+        state = coordinator.state if coordinator is not None else None
+        points = (
+            [[point.x, point.y] for point in coordinator.current_roi_points]
+            if coordinator is not None
+            else []
+        )
+        entries.append(
+            {
+                "config_entry_id": entry.entry_id,
+                "title": entry.title,
+                "entities": entities,
+                "roi_points": points,
+                "roi_points_json": (
+                    coordinator.current_roi_points_json if coordinator is not None else ""
+                ),
+                "source_width": state.source_width if state is not None else None,
+                "source_height": state.source_height if state is not None else None,
+            }
+        )
+    connection.send_result(msg["id"], {"entries": entries})
+
+
+def _entity_ids_for_entry(
+    entity_registry: er.EntityRegistry, config_entry_id: str
+) -> dict[str, str | None]:
+    entities: dict[str, str | None] = {
+        "safe_to_start": None,
+        "roi_editor_image": None,
+        "last_analyzed_image": None,
+    }
+    for registry_entry in er.async_entries_for_config_entry(
+        entity_registry, config_entry_id
+    ):
+        unique_id = registry_entry.unique_id
+        if unique_id.endswith("_safe_to_start"):
+            entities["safe_to_start"] = registry_entry.entity_id
+        elif unique_id.endswith("_roi_editor_image"):
+            entities["roi_editor_image"] = registry_entry.entity_id
+        elif unique_id.endswith("_last_analyzed_image"):
+            entities["last_analyzed_image"] = registry_entry.entity_id
+    return entities
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: VisionRoiGuardConfigEntry) -> bool:

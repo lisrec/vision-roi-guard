@@ -10,6 +10,7 @@ from custom_components.vision_roi_guard.const import (
     CONF_ROI_POINTS_JSON,
     DOMAIN,
     SERVICE_CLEAR_STATE,
+    SERVICE_REFRESH_ROI_EDITOR_IMAGE,
     SERVICE_RUN_ANALYSIS,
     SERVICE_UPDATE_ROI,
 )
@@ -52,6 +53,37 @@ async def test_services_target_config_entry(hass, camera_state) -> None:
         blocking=True,
     )
     runtime_data.coordinator.async_clear_state.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_refresh_roi_editor_image_service_targets_config_entry(
+    hass, camera_state
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Garden Guard",
+        data={
+            "name": "Garden Guard",
+            "camera_entity_id": "camera.test_camera",
+            "backend_type": "mock",
+        },
+        options={CONF_ROI_POINTS_JSON: ""},
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    runtime_data = entry.runtime_data
+    runtime_data.coordinator.async_refresh_roi_editor_image = AsyncMock()
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_REFRESH_ROI_EDITOR_IMAGE,
+        {"config_entry_id": entry.entry_id},
+        blocking=True,
+    )
+
+    runtime_data.coordinator.async_refresh_roi_editor_image.assert_awaited_once()
 
 
 @pytest.mark.asyncio

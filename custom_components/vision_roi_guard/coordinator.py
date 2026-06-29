@@ -236,8 +236,6 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
     async def async_refresh_roi_editor_image(self) -> None:
         """Capture a full frame and update the ROI editor image."""
         points = self.current_roi_points
-        if not points:
-            raise ValidationError("roi_missing")
 
         snapshot_path: Path | None = None
         try:
