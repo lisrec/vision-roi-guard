@@ -73,6 +73,9 @@
     "time": {
       "analysis_start_time": { "name": "Analysis start time" },
       "analysis_stop_time": { "name": "Analysis stop time" }
+    },
+    "image": {
+      "last_analyzed_image": { "name": "Last analyzed image" }
     }
   }
 }

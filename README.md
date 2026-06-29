@@ -36,11 +36,14 @@ The integration exposes:
 
 - `binary_sensor.safe_to_start`, `binary_sensor.analysis_ok`, and `binary_sensor.camera_available`
 - sensors for last verdict, reason, seen objects, analysis time, duration, and error
+- `image.last_analyzed_image` for the latest ROI-processed image sent to the analyzer
 - buttons for immediate analysis and saving a debug snapshot
 - switch/time/number entities for enabled state, active window, and interval
 - services `vision_roi_guard.run_analysis` and `vision_roi_guard.clear_state`
 
-Debug images are opt-in and retained locally under Home Assistant storage with pruning.
+The last analyzed image is overwritten on each analysis and can be used directly in
+Home Assistant image cards. Debug snapshot files remain opt-in and are retained locally
+under Home Assistant storage with pruning.
 
 ## Backends
 

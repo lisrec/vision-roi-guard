@@ -37,7 +37,7 @@ from .const import (
     VERDICT_ERROR,
     VERDICT_SAFE,
 )
-from .debug_store import write_debug_image
+from .debug_store import write_debug_image, write_last_analyzed_image
 from .exceptions import BackendError, CameraSnapshotError, ValidationError
 from .models import AnalysisResult, GuardState
 from .roi import parse_roi_points_json, process_image
@@ -146,6 +146,11 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
             await self.hass.async_add_executor_job(
                 processed_path.write_bytes, processed.image_bytes
             )
+            last_image_path = await write_last_analyzed_image(
+                self.hass, self.entry_id, processed.image_bytes
+            )
+            self._state.last_analyzed_image_path = str(last_image_path)
+            self._state.roi_point_count = processed.point_count
 
             result = await self._backend.analyze(
                 str(processed_path),

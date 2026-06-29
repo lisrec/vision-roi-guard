@@ -33,3 +33,15 @@ async def write_debug_image(
 
     await hass.async_add_executor_job(_prune)
     return path
+
+
+async def write_last_analyzed_image(
+    hass: HomeAssistant,
+    entry_id: str,
+    image_bytes: bytes,
+) -> Path:
+    """Persist the latest processed image for the image entity."""
+    directory = await ensure_storage_dir(hass)
+    path = directory / f"{entry_id}-last-analyzed.png"
+    await hass.async_add_executor_job(path.write_bytes, image_bytes)
+    return path

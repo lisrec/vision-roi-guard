@@ -44,6 +44,7 @@ class GuardState:
     safe_to_start: bool = False
     analysis_ok: bool = False
     camera_available: bool = False
+    last_analyzed_image_path: str | None = None
     debug_image_path: str | None = None
     backend_name: str | None = None
     roi_point_count: int = 0

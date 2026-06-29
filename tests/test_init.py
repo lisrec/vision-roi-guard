@@ -25,3 +25,5 @@ async def test_setup_entry(hass, camera_state) -> None:
 
     state = hass.states.get("binary_sensor.garden_guard_safe_to_start")
     assert state is not None
+    image_state = hass.states.get("image.garden_guard_last_analyzed_image")
+    assert image_state is not None

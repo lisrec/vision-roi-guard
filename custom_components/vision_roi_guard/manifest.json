@@ -1,7 +1,7 @@
 {
   "domain": "vision_roi_guard",
   "name": "Vision ROI Guard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "documentation": "https://github.com/lisrec/vision-roi-guard",
   "issue_tracker": "https://github.com/lisrec/vision-roi-guard/issues",
   "codeowners": ["@lisrec"],

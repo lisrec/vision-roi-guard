@@ -13,6 +13,7 @@ PLATFORMS: Final = (
     "switch",
     "number",
     "time",
+    "image",
 )
 
 CONF_CAMERA_ENTITY_ID: Final = "camera_entity_id"

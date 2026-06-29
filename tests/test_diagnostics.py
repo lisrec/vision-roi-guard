@@ -14,6 +14,7 @@ class _Coordinator:
             last_result="safe",
             last_reason="http://example.invalid/path token_abcdefghijklmnopqrstuvwxyz0123456789",
             last_error="private scene detail " * 20,
+            last_analyzed_image_path="/private/path/last.png",
             debug_image_path="/private/path/image.png",
             backend_name="mock",
             roi_point_count=4,
@@ -46,6 +47,7 @@ async def test_diagnostics_redacts_sensitive_values(hass) -> None:
     assert diagnostics["entry"]["options"]["http_analyzer_url"] == "[redacted]"
     assert diagnostics["entry"]["options"]["http_bearer_token"] == "[redacted]"
     assert diagnostics["entry"]["options"]["nested"]["access_token"] == "[redacted]"
+    assert diagnostics["state"]["last_analyzed_image_path"] == "[redacted]"
     assert diagnostics["state"]["debug_image_path"] == "[redacted]"
     assert "example.invalid" not in diagnostics["state"]["last_reason"]
     assert "abcdefghijklmnopqrstuvwxyz0123456789" not in diagnostics["state"]["last_reason"]
