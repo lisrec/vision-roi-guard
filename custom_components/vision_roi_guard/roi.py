@@ -119,3 +119,41 @@ def process_image(
             bounding_box=bbox,
             point_count=len(points),
         )
+
+
+def render_roi_editor_image(
+    image_bytes: bytes,
+    points: tuple[RoiPoint, ...],
+) -> tuple[bytes, tuple[int, int]]:
+    """Draw the ROI polygon over a full-frame image for editor use."""
+    with Image.open(BytesIO(image_bytes)) as source:
+        image = source.convert("RGBA")
+
+        overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+        if points:
+            validate_polygon(points, image.size)
+            xy = [(point.x, point.y) for point in points]
+            draw.polygon(xy, fill=(0, 172, 193, 64))
+            draw.line(xy + [xy[0]], fill=(0, 172, 193, 230), width=3)
+
+            radius = 9
+            for index, point in enumerate(points, start=1):
+                x = point.x
+                y = point.y
+                draw.ellipse(
+                    (x - radius, y - radius, x + radius, y + radius),
+                    fill=(255, 193, 7, 240),
+                    outline=(38, 50, 56, 255),
+                    width=2,
+                )
+                draw.text(
+                    (x + radius + 3, y - radius - 2),
+                    str(index),
+                    fill=(255, 255, 255, 255),
+                )
+
+        output = Image.alpha_composite(image, overlay).convert("RGB")
+        buffer = BytesIO()
+        output.save(buffer, format="PNG")
+        return buffer.getvalue(), image.size

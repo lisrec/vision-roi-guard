@@ -35,3 +35,26 @@ clear_state:
       required: false
       selector:
         text:
+
+update_roi:
+  name: Update ROI
+  description: Save a polygon ROI for one or more Vision ROI Guard entries.
+  fields:
+    entity_id:
+      required: false
+      selector:
+        entity:
+          integration: vision_roi_guard
+    config_entry_id:
+      required: false
+      selector:
+        text:
+    roi_points_json:
+      required: false
+      selector:
+        text:
+          multiline: true
+    points:
+      required: false
+      selector:
+        object:

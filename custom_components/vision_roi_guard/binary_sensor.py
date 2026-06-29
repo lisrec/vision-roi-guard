@@ -42,6 +42,12 @@ class SafeToStartBinarySensor(VisionRoiGuardEntity, BinarySensorEntity):
             "last_reason": self.coordinator.state.last_reason,
             "last_seen_objects": list(self.coordinator.state.last_seen_objects),
             "last_analyzed_at": self.coordinator.state.last_analyzed_at,
+            "roi_points": [
+                [point.x, point.y] for point in self.coordinator.current_roi_points
+            ],
+            "roi_points_json": self.coordinator.current_roi_points_json,
+            "source_width": self.coordinator.state.source_width,
+            "source_height": self.coordinator.state.source_height,
         }
 
 

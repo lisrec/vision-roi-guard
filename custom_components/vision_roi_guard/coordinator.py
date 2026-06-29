@@ -37,10 +37,14 @@ from .const import (
     VERDICT_ERROR,
     VERDICT_SAFE,
 )
-from .debug_store import write_debug_image, write_last_analyzed_image
+from .debug_store import (
+    write_debug_image,
+    write_last_analyzed_image,
+    write_roi_editor_image,
+)
 from .exceptions import BackendError, CameraSnapshotError, ValidationError
 from .models import AnalysisResult, GuardState
-from .roi import parse_roi_points_json, process_image
+from .roi import parse_roi_points_json, process_image, render_roi_editor_image
 
 LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +94,31 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
             options.get(CONF_ANALYSIS_INTERVAL_MIN, DEFAULT_ANALYSIS_INTERVAL_MIN)
         )
         self.update_interval = timedelta(minutes=interval_minutes) if interval_minutes > 0 else None
+        self._state.roi_point_count = len(self.current_roi_points)
+        self.async_set_updated_data(self._state)
+
+    @property
+    def current_roi_points_json(self) -> str:
+        """Return the currently configured ROI points JSON."""
+        return str(self._options.get(CONF_ROI_POINTS_JSON, ""))
+
+    @property
+    def current_roi_points(self) -> tuple:
+        """Return the currently configured ROI points."""
+        roi_json = self.current_roi_points_json
+        if not roi_json:
+            return ()
+        try:
+            return parse_roi_points_json(roi_json)
+        except ValidationError:
+            return ()
+
+    @property
+    def known_frame_size(self) -> tuple[int, int] | None:
+        """Return the last known full camera frame size."""
+        if self._state.source_width is None or self._state.source_height is None:
+            return None
+        return (self._state.source_width, self._state.source_height)
 
     async def _async_update_data(self) -> GuardState:
         """Periodic refresh path."""
@@ -132,6 +161,7 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
             points = ()
             if roi_json := self._options.get(CONF_ROI_POINTS_JSON, ""):
                 points = parse_roi_points_json(roi_json)
+            await self._async_write_roi_editor_image(image_bytes, points)
             if not points:
                 raise ValidationError("roi_missing")
 
@@ -202,6 +232,45 @@ class VisionRoiGuardCoordinator(DataUpdateCoordinator[GuardState]):
 
         self.async_set_updated_data(self._state)
         return self._state
+
+    async def async_refresh_roi_editor_image(self) -> None:
+        """Capture a full frame and update the ROI editor image."""
+        points = self.current_roi_points
+        if not points:
+            raise ValidationError("roi_missing")
+
+        snapshot_path: Path | None = None
+        try:
+            snapshot_path = await capture_camera_snapshot(
+                self.hass, self._data[CONF_CAMERA_ENTITY_ID]
+            )
+            self._state.camera_available = True
+            image_bytes = await self.hass.async_add_executor_job(snapshot_path.read_bytes)
+            await self._async_write_roi_editor_image(image_bytes, points)
+            self.async_set_updated_data(self._state)
+        except CameraSnapshotError:
+            self._state.camera_available = False
+            self.async_set_updated_data(self._state)
+            raise
+        finally:
+            if snapshot_path is not None:
+                await self.hass.async_add_executor_job(
+                    lambda: snapshot_path.unlink(missing_ok=True)
+                )
+
+    async def _async_write_roi_editor_image(
+        self, image_bytes: bytes, points: tuple
+    ) -> None:
+        editor_image_bytes, source_size = await self.hass.async_add_executor_job(
+            render_roi_editor_image, image_bytes, points
+        )
+        editor_path = await write_roi_editor_image(
+            self.hass, self.entry_id, editor_image_bytes
+        )
+        self._state.roi_editor_image_path = str(editor_path)
+        self._state.roi_editor_image_updated_at = dt_util.utcnow()
+        self._state.source_width = source_size[0]
+        self._state.source_height = source_size[1]
 
     async def _apply_result(
         self, result: AnalysisResult, analyzed_at: datetime, roi_point_count: int

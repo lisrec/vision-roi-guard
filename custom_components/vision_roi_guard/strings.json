@@ -75,7 +75,8 @@
       "analysis_stop_time": { "name": "Analysis stop time" }
     },
     "image": {
-      "last_analyzed_image": { "name": "Last analyzed image" }
+      "last_analyzed_image": { "name": "Last analyzed image" },
+      "roi_editor_image": { "name": "ROI editor image" }
     }
   }
 }

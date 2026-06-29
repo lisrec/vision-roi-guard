@@ -7,6 +7,7 @@ SENSITIVE_KEYS = {
     "prompt_template",
     "roi_points_json",
     "last_analyzed_image_path",
+    "roi_editor_image_path",
     "debug_image_path",
     "raw_text",
     "http_analyzer_url",

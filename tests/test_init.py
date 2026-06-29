@@ -25,5 +25,9 @@ async def test_setup_entry(hass, camera_state) -> None:
 
     state = hass.states.get("binary_sensor.garden_guard_safe_to_start")
     assert state is not None
+    assert state.attributes["roi_points"] == [[1, 1], [8, 1], [8, 8], [1, 8]]
+    assert state.attributes["roi_points_json"] == "[[1,1],[8,1],[8,8],[1,8]]"
     image_state = hass.states.get("image.garden_guard_last_analyzed_image")
     assert image_state is not None
+    editor_image_state = hass.states.get("image.garden_guard_roi_editor_image")
+    assert editor_image_state is not None

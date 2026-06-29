@@ -34,6 +34,7 @@ async def async_get_config_entry_diagnostics(
                 "analysis_ok": state.analysis_ok,
                 "roi_point_count": state.roi_point_count,
                 "last_analyzed_image_path": state.last_analyzed_image_path,
+                "roi_editor_image_path": state.roi_editor_image_path,
                 "debug_image_path": state.debug_image_path,
             }
         ),

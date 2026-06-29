@@ -45,3 +45,15 @@ async def write_last_analyzed_image(
     path = directory / f"{entry_id}-last-analyzed.png"
     await hass.async_add_executor_job(path.write_bytes, image_bytes)
     return path
+
+
+async def write_roi_editor_image(
+    hass: HomeAssistant,
+    entry_id: str,
+    image_bytes: bytes,
+) -> Path:
+    """Persist the latest full-frame ROI editor image."""
+    directory = await ensure_storage_dir(hass)
+    path = directory / f"{entry_id}-roi-editor.png"
+    await hass.async_add_executor_job(path.write_bytes, image_bytes)
+    return path

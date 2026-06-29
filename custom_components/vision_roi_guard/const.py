@@ -94,10 +94,13 @@ DEFAULT_ANALYZER_PROFILE: Final = "mower_safety"
 
 SERVICE_RUN_ANALYSIS: Final = "run_analysis"
 SERVICE_CLEAR_STATE: Final = "clear_state"
+SERVICE_UPDATE_ROI: Final = "update_roi"
 
 ATTR_FORCE: Final = "force"
 ATTR_SAVE_DEBUG: Final = "save_debug"
 ATTR_CONFIG_ENTRY_ID: Final = "config_entry_id"
+ATTR_POINTS: Final = "points"
+ATTR_ROI_POINTS_JSON: Final = "roi_points_json"
 
 STORAGE_DIR: Final = "vision_roi_guard"
 DEBUG_DIR: Final = "debug"

@@ -45,9 +45,13 @@ class GuardState:
     analysis_ok: bool = False
     camera_available: bool = False
     last_analyzed_image_path: str | None = None
+    roi_editor_image_path: str | None = None
+    roi_editor_image_updated_at: datetime | None = None
     debug_image_path: str | None = None
     backend_name: str | None = None
     roi_point_count: int = 0
+    source_width: int | None = None
+    source_height: int | None = None
     attributes: dict[str, Any] = field(default_factory=dict)
 
 
