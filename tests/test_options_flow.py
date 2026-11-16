@@ -3,10 +3,9 @@ from __future__ import annotations
 from datetime import time
 
 import pytest
-import voluptuous_serialize
+from ha_test_helpers import MockConfigEntry, serialize_schema
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.vision_roi_guard.const import (
     CONF_ACTIVE_START_TIME,
@@ -143,7 +142,7 @@ async def test_options_flow_requires_http_bearer_token(
 
 
 def test_options_schema_is_serializable() -> None:
-    serialized = voluptuous_serialize.convert(
+    serialized = serialize_schema(
         build_options_schema({}), custom_serializer=cv.custom_serializer
     )
     names = {item["name"] for item in serialized}

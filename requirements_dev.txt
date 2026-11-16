@@ -1,4 +1,7 @@
-pytest
-pytest-cov
-pytest-homeassistant-custom-component
-ruff
+# Official fixtures own the exact pytest and pytest-asyncio runner pins.
+homeassistant==2026.11.1
+pytest-homeassistant==2026.11.1
+pytest-cov==7.1.0
+ruff==0.17.5
+
+pip-audit==2.10.1
