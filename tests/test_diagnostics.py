@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from ha_test_helpers import MockConfigEntry
 
 from custom_components.vision_roi_guard.const import DOMAIN
 from custom_components.vision_roi_guard.diagnostics import async_get_config_entry_diagnostics

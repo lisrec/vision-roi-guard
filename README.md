@@ -112,14 +112,43 @@ The current implementation assumes a `codex exec -i <image> ...` command shape. 
 
 ## Development
 
-Create a local environment and run tests:
+The default lane uses Python 3.14.2 or newer and the official
+`pytest-homeassistant==2026.11.1` / `homeassistant==2026.11.1` pair. The legacy
+custom-component fixture is no longer maintained; do not install both fixture
+packages in one environment. Each fixture owns its exact pytest/asyncio pins.
 
 ```bash
-uv venv .venv
-uv pip install --python .venv/bin/python -r requirements_dev.txt
-PYTHONPATH=. ./.venv/bin/pytest
-./.venv/bin/ruff check custom_components tests
+python3.14 -m venv .venv
+.venv/bin/python -m pip install -r requirements_dev.txt .
+.venv/bin/python -m pip check
+PYTHONPATH=. .venv/bin/python -m pytest --cov=custom_components/vision_roi_guard --cov-branch
+.venv/bin/ruff check custom_components tests
+.venv/bin/python -m pip_audit
 ```
+
+CI also preserves the previously tested Python 3.13 / Core 2026.2.3 lane using
+`requirements_compat.txt`. Reproduce it in a **separate** environment:
+
+```bash
+python3.13 -m venv .venv-compat
+.venv-compat/bin/python -m pip install -r requirements_compat.txt .
+.venv-compat/bin/python -m pip check
+PYTHONPATH=. .venv-compat/bin/python -m pytest --cov=custom_components/vision_roi_guard --cov-branch
+```
+
+The legacy lane is a compatibility check, **not** a security-clean environment:
+its Core pins Pillow 12.0.0 and other older dependencies. Do not execute its
+bundled `uv`; use pip or a separately verified patched installer. The current
+lane selects Pillow 13.0.0 through Core, and its full environment audit is a
+required CI step. Test helpers select the actual installed fixture and Core's
+serializer without suppressing import failures or changing test assertions.
+
+This is a test-toolchain migration, not a production upgrade. The runtime
+`Pillow>=10.0.0` requirement remains synchronized between the integration
+manifest and project metadata; changing it to a patched floor conflicts with
+older Core pins and remains tracked in issue #4. No claim is made that an
+existing Home Assistant installation has patched libraries. The integration's
+Python/runtime support declarations are unchanged.
 
 ## Documentation
 

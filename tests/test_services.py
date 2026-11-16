@@ -3,8 +3,8 @@ from __future__ import annotations
 from unittest.mock import AsyncMock
 
 import pytest
+from ha_test_helpers import MockConfigEntry
 from homeassistant.exceptions import ServiceValidationError
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.vision_roi_guard.const import (
     CONF_ROI_POINTS_JSON,

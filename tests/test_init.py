@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import pytest
+from ha_test_helpers import MockConfigEntry
 from homeassistant.components.frontend import DATA_PANELS
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.vision_roi_guard.const import DOMAIN
 

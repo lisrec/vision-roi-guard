@@ -10,6 +10,7 @@ build/
 *.egg-info/
 venv/
 .venv/
+.venv-compat/
 __pycache__/
 *.py[cod]
 custom_components/vision_roi_guard/translations/*.cache

@@ -4,27 +4,53 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lane: audited-current
+            python: "3.14"
+            requirements: requirements_dev.txt
+          - lane: legacy-compatibility
+            python: "3.13"
+            requirements: requirements_compat.txt
+    name: Test (${{ matrix.lane }})
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.8" # Patched installer; never execute Core's legacy uv.
 
       - name: Set up Python
-        run: uv python install 3.13
+        run: uv python install '${{ matrix.python }}'
 
       - name: Create virtualenv
-        run: uv venv .venv --python 3.13
+        run: uv venv .venv --seed --python '${{ matrix.python }}'
 
       - name: Install dependencies
-        run: uv pip install --python .venv/bin/python -r requirements_dev.txt
+        run: .venv/bin/python -m pip install -r '${{ matrix.requirements }}' .
+
+      - name: Validate installed dependencies
+        run: .venv/bin/python -m pip check
 
       - name: Ruff
         run: ./.venv/bin/ruff check custom_components tests
 
       - name: Pytest
-        run: PYTHONPATH=. ./.venv/bin/pytest
+        run: PYTHONPATH=. ./.venv/bin/pytest --cov=custom_components/vision_roi_guard --cov-branch
+
+      - name: Audit current environment
+        if: matrix.lane == 'audited-current'
+        run: .venv/bin/python -m pip_audit
