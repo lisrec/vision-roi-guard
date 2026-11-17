@@ -23,7 +23,7 @@ def test_installed_fixture_matches_core_and_serializer() -> None:
     """Exercise the actual installed pair instead of accepting resolver success."""
     if find_spec("pytest_homeassistant") is not None:
         assert find_spec("pytest_homeassistant_custom_component") is None
-        assert version("pytest-homeassistant") == version("homeassistant") == "2026.11.1"
+        assert version("pytest-homeassistant") == version("homeassistant") == "2026.11.2"
         assert version("pillow") == "13.0.0"
         assert MockConfigEntry.__module__ == "pytest_homeassistant.common"
         assert serialize_schema.__module__.startswith("probatio")
