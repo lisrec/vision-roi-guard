@@ -113,7 +113,7 @@ The current implementation assumes a `codex exec -i <image> ...` command shape. 
 ## Development
 
 The default lane uses Python 3.14.2 or newer and the official
-`pytest-homeassistant==2026.11.1` / `homeassistant==2026.11.1` pair. The legacy
+`pytest-homeassistant==2026.11.2` / `homeassistant==2026.11.2` pair. The legacy
 custom-component fixture is no longer maintained; do not install both fixture
 packages in one environment. Each fixture owns its exact pytest/asyncio pins.
 

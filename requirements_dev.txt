@@ -1,6 +1,6 @@
 # Official fixtures own the exact pytest and pytest-asyncio runner pins.
-homeassistant==2026.11.1
-pytest-homeassistant==2026.11.1
+homeassistant==2026.11.2
+pytest-homeassistant==2026.11.2
 pytest-cov==7.1.0
 ruff==0.17.5
 
