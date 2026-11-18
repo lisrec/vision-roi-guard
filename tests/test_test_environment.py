@@ -1,7 +1,8 @@
 """Keep the compatibility lane distinct from the audited current fixture."""
 
+import json
 import runpy
-from importlib.metadata import version
+from importlib.metadata import distribution, version
 from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
@@ -27,6 +28,17 @@ def test_installed_fixture_matches_core_and_serializer() -> None:
         assert version("pillow") == "13.0.0"
         assert MockConfigEntry.__module__ == "pytest_homeassistant.common"
         assert serialize_schema.__module__.startswith("probatio")
+    elif version("homeassistant") == "2026.9.4":
+        assert version("pytest-homeassistant-custom-component") == "0.13.367"
+        assert version("pillow") == "12.3.0"
+        fixture_source = json.loads(
+            distribution("pytest-homeassistant-custom-component").read_text("direct_url.json")
+        )
+        assert fixture_source["vcs_info"]["commit_id"] == (
+            "ecc26f34993d166edac608197b1df172d9da23de"
+        )
+        assert MockConfigEntry.__module__ == "pytest_homeassistant_custom_component.common"
+        assert serialize_schema.__module__ == "voluptuous_serialize"
     else:
         assert version("pytest-homeassistant-custom-component") == "0.13.316"
         assert version("homeassistant") == "2026.2.3"
