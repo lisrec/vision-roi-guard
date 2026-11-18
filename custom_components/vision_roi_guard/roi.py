@@ -89,7 +89,9 @@ def _decode_image(image_bytes: bytes, mode: str) -> Image.Image:
     try:
         with Image.open(BytesIO(image_bytes)) as source:
             return source.convert(mode)
-    except (OSError, Image.DecompressionBombError) as err:
+    except (OSError, ValueError, Image.DecompressionBombError) as err:
+        # Pillow also rejects oversized compressed PNG text with ValueError.
+        # Keep normalization inside its open/convert boundary, not application code.
         raise ValidationError("image_invalid") from err
 
 
