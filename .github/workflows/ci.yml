@@ -21,17 +21,22 @@ jobs:
           - lane: legacy-compatibility
             python: "3.13"
             requirements: requirements_compat.txt
+          - lane: production-compatibility
+            python: "3.14"
+            requirements: requirements_production_compat.txt
     name: Test (${{ matrix.lane }})
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # Existing v7
         with:
-          version: "0.13.8" # Patched installer; never execute Core's legacy uv.
+          version: "0.13.9" # Patched installer; never execute Core's legacy uv.
+          # GitHub release digest for the ubuntu-latest x86_64 Linux archive.
+          checksum: "a7fbaff2b9a271d85c1bdb540941090fd1ce011797b4abeb48e4dcd39c2471d5"
 
       - name: Set up Python
         run: uv python install '${{ matrix.python }}'
