@@ -93,9 +93,7 @@ async def test_coordinator_runs_analysis(monkeypatch, hass, tmp_path) -> None:
         type("Entry", (), {"entry_id": "entry-id", "title": "Garden Guard"})(),
     )
     assert editor_entity.content_type == "image/png"
-    assert editor_entity.image() == await hass.async_add_executor_job(
-        editor_image_path.read_bytes
-    )
+    assert editor_entity.image() == await hass.async_add_executor_job(editor_image_path.read_bytes)
 
 
 @pytest.mark.asyncio
@@ -139,9 +137,7 @@ async def test_coordinator_keeps_last_image_when_backend_fails_after_roi(
 
 
 @pytest.mark.asyncio
-async def test_coordinator_writes_editor_image_without_roi(
-    monkeypatch, hass, tmp_path
-) -> None:
+async def test_coordinator_writes_editor_image_without_roi(monkeypatch, hass, tmp_path) -> None:
     snapshot_path = tmp_path / "snapshot.jpg"
 
     async def _fake_capture(*args, **kwargs):
@@ -178,3 +174,44 @@ async def test_coordinator_writes_editor_image_without_roi(
     assert result.source_width == 10
     assert result.source_height == 10
     assert await hass.async_add_executor_job(Path(result.roi_editor_image_path).is_file)
+
+
+@pytest.mark.asyncio
+async def test_invalid_snapshot_revokes_previous_safe_verdict(monkeypatch, hass, tmp_path) -> None:
+    """A camera decode failure must not strand the preceding safe decision."""
+    from PIL import Image
+
+    snapshot_path = tmp_path / "snapshot.jpg"
+    invalid = False
+
+    async def capture(*args, **kwargs):
+        del args, kwargs
+        if invalid:
+            snapshot_path.write_bytes(b"not an image: private camera response")
+        else:
+            Image.new("RGB", (10, 10), "white").save(snapshot_path, format="JPEG")
+        return snapshot_path
+
+    monkeypatch.setattr(
+        "custom_components.vision_roi_guard.coordinator.capture_camera_snapshot", capture
+    )
+    coordinator = VisionRoiGuardCoordinator(
+        hass=hass,
+        entry_id="decode-failure",
+        title="Test Guard",
+        data={CONF_CAMERA_ENTITY_ID: "camera.test_camera"},
+        options={CONF_ROI_POINTS_JSON: "[[1,1],[8,1],[8,8],[1,8]]"},
+        backend=MockBackend({}),
+    )
+    assert (
+        await coordinator.async_run_analysis(force=True, save_debug=False)
+    ).safe_to_start is True
+    invalid = True
+
+    result = await coordinator.async_run_analysis(force=True, save_debug=False)
+
+    assert result.safe_to_start is False
+    assert result.analysis_ok is False
+    assert result.last_result == "error"
+    assert result.last_error == "image_invalid"
+    assert not snapshot_path.exists()

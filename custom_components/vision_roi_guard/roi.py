@@ -84,6 +84,15 @@ def validate_polygon(
                 raise ValidationError("roi_self_intersection")
 
 
+def _decode_image(image_bytes: bytes, mode: str) -> Image.Image:
+    """Translate camera decoder failures into a stable, fail-closed error."""
+    try:
+        with Image.open(BytesIO(image_bytes)) as source:
+            return source.convert(mode)
+    except (OSError, Image.DecompressionBombError) as err:
+        raise ValidationError("image_invalid") from err
+
+
 def process_image(
     image_bytes: bytes,
     points: tuple[RoiPoint, ...],
@@ -91,8 +100,7 @@ def process_image(
     crop_to_bounding_box: bool,
 ) -> ProcessedImage:
     """Apply ROI masking and optional cropping to an image."""
-    with Image.open(BytesIO(image_bytes)) as source:
-        image = source.convert("RGB")
+    with _decode_image(image_bytes, "RGB") as image:
         validate_polygon(points, image.size)
         mask = Image.new("L", image.size, 0)
         draw = ImageDraw.Draw(mask)
@@ -126,9 +134,7 @@ def render_roi_editor_image(
     points: tuple[RoiPoint, ...],
 ) -> tuple[bytes, tuple[int, int]]:
     """Draw the ROI polygon over a full-frame image for editor use."""
-    with Image.open(BytesIO(image_bytes)) as source:
-        image = source.convert("RGBA")
-
+    with _decode_image(image_bytes, "RGBA") as image:
         overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
         if points:
