@@ -4,5 +4,5 @@
 homeassistant==2026.2.3
 pytest-homeassistant-custom-component==0.13.316
 # pytest-cov is also owned by this legacy fixture (7.0.0).
-ruff==0.17.5
+ruff==0.17.6
 voluptuous-serialize==2.7.0

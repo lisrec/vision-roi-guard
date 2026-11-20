@@ -3,5 +3,5 @@ homeassistant==2026.9.4
 pytest-homeassistant-custom-component @ git+https://github.com/MatthewFlamm/pytest-homeassistant-custom-component.git@ecc26f34993d166edac608197b1df172d9da23de
 # The fixture owns pytest and pytest-asyncio; never override them.
 pytest-cov==7.1.0
-ruff==0.17.5
+ruff==0.17.6
 voluptuous-serialize==2.7.0
